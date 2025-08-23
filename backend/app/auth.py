@@ -4,8 +4,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 # Replace with your actual Clerk domain!!
-CLERK_ISSUER = "https://<your-clerk-frontend-api>.clerk.accounts.dev"
-CLERK_JWKS_URL = f"{CLERK_ISSUER}/.well-known/jwks.json"
+CLERK_ISSUER="https://glorious-cicada-91.clerk.accounts.dev"
+CLERK_JWKS_URL = "https://glorious-cicada-91.clerk.accounts.dev/.well-known/jwks.json"
 
 security = HTTPBearer()
 jwks_cache = None
