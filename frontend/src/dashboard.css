@@ -132,6 +132,7 @@
   align-items: center;
   gap: 12px;
   box-shadow: 0 3px 15px rgba(0,0,0,0.35);
+  flex-wrap: wrap; /* allow wrapping so controls aren't cramped */
 }
 .budget-box h4 {
   margin-right: auto;
@@ -229,4 +230,291 @@
   background: linear-gradient(90deg, #58a6ff55, #b27cff55);
   color: #fff;
   font-weight: 600;
+}
+/* Greeting / motivational section */
+.greeting-card {
+  background: linear-gradient(90deg, #58a6ff55, #b27cff55);
+  padding: 20px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.3);
+}
+.greeting-card h2 {
+  margin-bottom: 6px;
+  font-size: 1.5rem;
+}
+.greeting-card p {
+  color: #d1d5db;
+}
+
+/* Progress Circle */
+.progress-circle {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto;
+}
+.progress-circle svg {
+  transform: rotate(-90deg);
+  width: 80px;
+  height: 80px;
+}
+.progress-circle circle {
+  fill: none;
+  stroke-width: 8;
+  stroke: #222;
+  r: 35;
+  cx: 40;
+  cy: 40;
+}
+.progress-circle circle:nth-child(2) {
+  stroke: url(#gradient);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.4s ease;
+}
+.progress-circle span {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: bold;
+  font-size: 1rem;
+  color: #fff;
+}
+
+/* Quick Tips */
+.quote-card {
+  background: #1f2937;
+  border-left: 4px solid #58a6ff;
+  padding: 16px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  color: #9ca3af;
+  font-style: italic;
+}
+/* ==== Profile Page ==== */
+.profile-page {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+.profile-card {
+  background: rgba(31,41,55,0.8);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.4);
+  width: 100%;
+  max-width: 500px;
+  animation: fadeIn 0.3s ease; 
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.profile-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+}
+
+.profile-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  background: linear-gradient(90deg, #58a6ff, #b27cff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.profile-header p {
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+/* Currency Dropdown */
+.currency-box {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.currency-box label {
+  margin-bottom: 6px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.currency-select {
+  background: #1f2937;
+  border: 1px solid #374151;
+  color: #fff;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border 0.2s, background 0.2s;
+}
+
+.currency-select:hover {
+  background: #2d3748;
+  border-color: #58a6ff;
+}
+
+/* Current Currency Badge */
+.currency-current {
+  margin: 15px 0;
+  font-size: 1rem;
+}
+.currency-badge {
+  background: linear-gradient(90deg, #58a6ff, #b27cff);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: bold;
+  color: white;
+}
+
+/* Logout Button Box */
+.profile-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* Smooth fade-in effect */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* Profile Actions (Sign Out Button) */
+.profile-actions {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.signout-btn {
+  background: linear-gradient(90deg, #ff4e50, #f9d423);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.signout-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+}
+.stat-card.green::before {
+  background: linear-gradient(90deg, #34d399, #22c55e);
+}
+
+/* Existing month select */
+.budget-month-select {
+  background: #1f2937;
+  border: 1px solid #374151;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: border 0.2s, background 0.2s;
+}
+.budget-month-select:focus,
+.budget-month-select:hover {
+  border-color: #58a6ff;
+  background: #212b3a;
+}
+
+/* ✨ New: Year select styled the same */
+.budget-year-select {
+  background: #1f2937;
+  border: 1px solid #374151;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: border 0.2s, background 0.2s;
+}
+.budget-year-select:focus,
+.budget-year-select:hover {
+  border-color: #58a6ff;
+  background: #212b3a;
+}
+
+/* Global action button styles already present */
+.action-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 0.96rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  transition: background 0.15s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 0 0 transparent;
+  outline: none;
+}
+
+.edit-btn {
+  background: linear-gradient(90deg, #2af598 0%, #009efd 100%);
+  color: #fff;
+}
+
+.edit-btn:hover, .edit-btn:focus {
+  background: linear-gradient(90deg, #009efd 0%, #2af598 100%);
+  transform: translateY(-1px) scale(1.07);
+  box-shadow: 0 1px 10px 1px #009efd44;
+}
+
+.delete-btn {
+  background: linear-gradient(90deg, #ff5858 0%, #f09819 100%);
+  color: #fff;
+}
+
+.delete-btn:hover, .delete-btn:focus {
+  background: linear-gradient(90deg, #f09819 0%, #ff5858 100%);
+  transform: translateY(-1px) scale(1.07);
+  box-shadow: 0 1px 10px 1px #ff585844;
+}
+
+/* ✨ New: neutral cancel button */
+.cancel-btn {
+  background: #374151;
+  color: #fff;
+}
+.cancel-btn:hover, .cancel-btn:focus {
+  background: #445065;
+  transform: translateY(-1px) scale(1.03);
+}
+
+/* ✨ New: cleaner budget list rows */
+.budget-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin: 10px 0;
+  background: #1f2937;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  width: fit-content;
+}
+
+.budget-actions {
+  display: flex;
+  gap: 10px; /* space out Edit/Delete so they aren't congested */
 }

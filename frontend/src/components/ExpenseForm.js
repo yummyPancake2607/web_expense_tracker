@@ -1,53 +1,123 @@
 import React, { useState, useEffect } from "react";
 
-const defaultCategories = [
-  "Food", "Transport", "Groceries", "Health", "Bills", "Entertainment", "Other"
-];
+function ExpenseForm({ onSubmit, editingExpense, onCancel }) {
+  const [date, setDate] = useState("");
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("Food");
+  const [customCategory, setCustomCategory] = useState("");
 
-const ExpenseForm = ({
-  onSubmit, editingExpense, onCancel
-}) => {
-  const [form, setForm] = useState({
-    date: "",
-    description: "",
-    category: defaultCategories[0],
-    amount: ""
-  });
+  // Predefined categories with option for Custom
+  const predefinedCategories = [
+    "Food",
+    "Transport",
+    "Groceries",
+    "Health",
+    "Bills",
+    "Entertainment",
+    "Custom" // 👈 allows typing your own
+  ];
 
+  // Populate form if editing an expense
   useEffect(() => {
     if (editingExpense) {
-      setForm({ ...editingExpense, amount: editingExpense.amount.toString() });
-    } else {
-      setForm({ date: "", description: "", category: defaultCategories[0], amount: "" });
+      setDate(editingExpense.date);
+      setDescription(editingExpense.description);
+      setAmount(editingExpense.amount);
+
+      if (predefinedCategories.includes(editingExpense.category)) {
+        setCategory(editingExpense.category);
+        setCustomCategory("");
+      } else {
+        setCategory("Custom");
+        setCustomCategory(editingExpense.category);
+      }
     }
   }, [editingExpense]);
 
-  function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  }
-
+  // Handle form submit
   function handleSubmit(e) {
     e.preventDefault();
-    if (!form.date || !form.description || !form.amount) return;
-    onSubmit({
-      ...form,
-      amount: parseFloat(form.amount)
-    });
-    setForm({ date: "", description: "", category: defaultCategories[0], amount: "" });
+    const expenseData = {
+      date,
+      description,
+      amount: parseFloat(amount),
+      category: category === "Custom" ? customCategory : category
+    };
+    onSubmit(expenseData);
+
+    // Reset form after submit
+    setDate("");
+    setDescription("");
+    setAmount("");
+    setCategory("Food");
+    setCustomCategory("");
   }
 
   return (
-    <form className="expense-form" onSubmit={handleSubmit}>
-      <input type="date" name="date" value={form.date} onChange={handleChange} required />
-      <input type="text" name="description" value={form.description} placeholder="Description" onChange={handleChange} required />
-      <select name="category" value={form.category} onChange={handleChange}>
-        {defaultCategories.map(cat => <option key={cat}>{cat}</option>)}
+    <form onSubmit={handleSubmit} className="expense-form">
+      {/* Date */}
+      <input
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        required
+      />
+
+      {/* Description */}
+      <input
+        type="text"
+        placeholder="Description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        required
+      />
+
+      {/* Category Dropdown */}
+      <select
+        value={category}
+        onChange={(e) => setCategory(e.target.value)}
+      >
+        {predefinedCategories.map((cat) => (
+          <option key={cat} value={cat}>
+            {cat}
+          </option>
+        ))}
       </select>
-      <input type="number" name="amount" value={form.amount} placeholder="Amount" min="0" step="0.01" onChange={handleChange} required />
-      <button type="submit">{editingExpense ? "Update" : "Add"}</button>
-      {editingExpense && <button type="button" onClick={onCancel}>Cancel</button>}
+
+      {/* If user selects Custom, show text input */}
+      {category === "Custom" && (
+        <input
+          type="text"
+          placeholder="Enter custom category"
+          value={customCategory}
+          onChange={(e) => setCustomCategory(e.target.value)}
+          required
+        />
+      )}
+
+      {/* Amount */}
+      <input
+        type="number"
+        step="0.01"
+        placeholder="Amount"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        required
+      />
+
+      {/* Buttons */}
+      <button type="submit">
+        {editingExpense ? "Update" : "Add"}
+      </button>
+      
+      {editingExpense && (
+        <button type="button" onClick={onCancel}>
+          Cancel
+        </button>
+      )}
     </form>
   );
-};
+}
 
 export default ExpenseForm;
