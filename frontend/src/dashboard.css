@@ -518,3 +518,301 @@
   display: flex;
   gap: 10px; /* space out Edit/Delete so they aren't congested */
 }
+/* 🌟 HAMBURGER STYLES */
+.hamburger-btn {
+  display: none; /* hidden on desktop */
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 50;
+  background: #1f2937;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.6rem;
+  color: #fff;
+  padding: 8px 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.hamburger-btn:focus {
+  outline: 2px solid #58a6ff;
+}
+
+@media (max-width: 900px) {
+  .dashboard-container {
+    position: relative;
+  }
+
+  /* ✅ Push logo down here */
+  .sidebar .logo {
+    margin-top: 60px;
+  }
+
+  /* Show hamburger */
+  .hamburger-btn {
+    display: block;
+  }
+
+  /* Sidebar hidden */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -260px;   /* move off-screen */
+    height: 100vh;
+    width: 240px;
+    transition: left 0.3s ease;
+    z-index: 40;
+  }
+
+  .sidebar.open {
+    left: 0;
+  }
+
+  .main-content {
+    padding: 80px 20px 20px 20px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .budget-box {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .budget-item {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+/* 📱 Responsive Table: collapse horizontally into stacked cards on small screens */
+@media (max-width: 600px) {
+  .expense-table {
+    border: 0;
+    width: 100%;
+  }
+
+  .expense-table thead {
+    display: none; /* hide header on mobile */
+  }
+
+  .expense-table tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid #232b35;
+    border-radius: 10px;
+    background: #1f2937;
+    padding: 10px;
+  }
+
+  .expense-table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    font-size: 0.95rem;
+    border: none;
+    border-bottom: 1px solid #2c3448;
+  }
+
+  /* remove last border bottom */
+  .expense-table td:last-child {
+    border-bottom: none;
+  }
+
+  /* each td shows its label from data-label attr */
+  .expense-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #58a6ff;
+    flex: 1;
+    text-align: left;
+  }
+
+  .expense-table td span,
+  .expense-table td strong,
+  .expense-table td button {
+    flex: 1;
+    text-align: right;
+  }
+}
+/* 🌟 Improved Add Expense Form */
+.expense-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.expense-form input,
+.expense-form select {
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  border: 1px solid #2c3448;
+  background: #151b26;
+  color: #e6edf3;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.expense-form input:focus,
+.expense-form select:focus {
+  border-color: #58a6ff;
+  box-shadow: 0 0 6px #58a6ff55;
+  outline: none;
+}
+
+.expense-form button {
+  background: linear-gradient(90deg, #58a6ff, #b27cff);
+  color: #fff;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.expense-form button:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 4px 12px rgba(88,166,255,0.3);
+}
+
+/* 📱 Mobile-friendly stacking */
+@media (max-width: 600px) {
+  .expense-form {
+    grid-template-columns: 1fr;
+  }
+}
+/* ====== MOBILE FIXES ====== */
+
+/* Hide sidebar logo on mobile 
+@media (max-width: 900px) {
+  .sidebar .logo {
+    display: none;
+  }
+}
+*/
+/* Show a mobile-friendly logo next to hamburger */
+.mobile-logo {
+  display: none;
+}
+@media (max-width: 900px) {
+  .mobile-topbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: #0f172a;
+    position: sticky;
+    top: 0;
+    z-index: 60;
+  }
+
+  .mobile-logo {
+    display: inline-block;
+    font-size: 1.4rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #58a6ff, #b27cff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+}
+
+/* Modernize sidebar buttons */
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  margin: 6px 0;
+  border-radius: 10px;
+  border: none;
+  background: #1f2937;
+  color: #e5e7eb;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.sidebar-link:hover {
+  background: linear-gradient(135deg, #58a6ff44, #b27cff44);
+  color: #fff;
+  transform: translateX(6px);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+.sidebar-link.active {
+  background: linear-gradient(135deg, #58a6ff, #b27cff);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 3px 12px rgba(88,166,255,0.3);
+}
+/* Base button styling */
+.expense-form button,
+.budget-box button,
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+}
+
+/* Hover effect */
+.expense-form button:hover,
+.budget-box button:hover,
+.action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+  filter: brightness(1.08);
+}
+
+/* Active (clicked) effect */
+.expense-form button:active,
+.budget-box button:active,
+.action-btn:active {
+  transform: scale(0.96);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2) inset;
+}
+
+/* 🌸 Pretty Colors */
+
+/* Add Button - lively soft blue/purple */
+.expense-form button,
+.budget-box button {
+  background: linear-gradient(135deg, #5a8dee, #9b7efa);
+}
+
+/* Edit Button - Mint → Teal */
+.edit-btn {
+  background: linear-gradient(135deg, #34d399, #10b981); /* Tailwind Emerald vibes */
+  color: #fff;
+}
+.edit-btn:hover {
+  filter: brightness(1.08);
+}
+
+/* Delete Button - Coral → Rose */
+.delete-btn {
+  background: linear-gradient(135deg, #fb7185, #f43f5e); /* Soft warm red-pink */
+  color: #fff;
+}
+.delete-btn:hover {
+  filter: brightness(1.08);
+}

@@ -1,21 +1,25 @@
-import React from "react";
-import './App.css';
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import "./App.css";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   SignedIn,
   SignedOut,
   SignInButton,
   SignUpButton,
 } from "@clerk/clerk-react";
+
 import {
   FaGithub,
-  FaTwitter,
-  FaGlobe,
-  FaEnvelope
+  FaInstagram,
+  FaLinkedin,
+  FaPinterest,
+  FaBars,
+  FaTimes,
 } from "react-icons/fa";
-import Dashboard from "./Dashboard"; // ✅ import real Dashboard.js
 
-// Features for homepage
+import Dashboard from "./Dashboard";
+
+// ---------------- FEATURES LIST ----------------
 const features = [
   { icon: "📅", title: "Effortless Expense Logging", description: "Log purchases quickly with date, category, amount and notes." },
   { icon: "📊", title: "Instant Visual Reports", description: "Pie and bar charts reveal trends by category and monthly spending." },
@@ -34,6 +38,7 @@ const sectionFadeIn = {
   }),
 };
 
+// ---------------- BACKGROUND BLOBS ----------------
 function BackgroundBlobs() {
   return (
     <div className="blobs-bg">
@@ -68,25 +73,68 @@ function BackgroundBlobs() {
   );
 }
 
+// ---------------- NAVBAR WITH HAMBURGER ----------------
 function Navbar() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
-    <nav className="navbar glass-nav navbar-fun">
-      <div className="navbar-inner">
-        <div className="logo logo-animated">
-          <span className="logo-sparkle">💸</span>
-          <span className="logo-text logo-gradient">Expense Tracker</span>
+    <>
+      <nav className="navbar glass-nav navbar-fun">
+        <div className="navbar-inner">
+          {/* Logo */}
+          <div className="logo logo-animated">
+            <span className="logo-sparkle">💸</span>
+            <span className="logo-text logo-gradient">Expense Tracker</span>
+          </div>
+
+          {/* Desktop Menu */}
+          <div className="navbar-right desktop-menu">
+            <a href="#about" className="nav-link-underline">About</a>
+            <a href="#features" className="nav-link-underline">Features</a>
+            <SignInButton mode="modal">
+              <button className="nav-btn nav-signin">Sign In</button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <button className="nav-btn nav-signup">Sign Up</button>
+            </SignUpButton>
+          </div>
+
+          {/* Hamburger (Mobile) */}
+          <button className="hamburger-btn" onClick={() => setMenuOpen(true)}>
+            <FaBars />
+          </button>
         </div>
-        <div className="navbar-right">
-          <a href="#about" className="nav-link-underline">About</a>
-          <a href="#features" className="nav-link-underline">Features</a>
-          <SignInButton mode="modal"><button className="nav-btn nav-signin">Sign In</button></SignInButton>
-          <SignUpButton mode="modal"><button className="nav-btn nav-signup">Sign Up</button></SignUpButton>
-        </div>
-      </div>
-    </nav>
+      </nav>
+
+      {/* Mobile Menu Overlay */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+  className="mobile-menu"
+  initial={{ x: "100%" }}
+  animate={{ x: 0 }}
+  exit={{ x: "100%" }}
+  transition={{ type: "tween", duration: 0.3 }}   // 👈 replace this line
+>
+            <button className="close-btn" onClick={() => setMenuOpen(false)}>
+              <FaTimes />
+            </button>
+            <a href="#about" onClick={() => setMenuOpen(false)}>About</a>
+            <a href="#features" onClick={() => setMenuOpen(false)}>Features</a>
+            <SignInButton mode="modal">
+              <button className="nav-btn nav-signin" onClick={() => setMenuOpen(false)}>Sign In</button>
+            </SignInButton>
+            <SignUpButton mode="modal">
+              <button className="nav-btn nav-signup" onClick={() => setMenuOpen(false)}>Sign Up</button>
+            </SignUpButton>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
+// ---------------- HERO SECTION ----------------
 function AnimatedLines() {
   return (
     <svg className="hero-lines" viewBox="0 0 550 60" fill="none">
@@ -145,6 +193,7 @@ function HeroSection() {
   );
 }
 
+// ---------------- FEATURES SECTION ----------------
 function Features() {
   return (
     <section className="features-section" id="features">
@@ -171,6 +220,7 @@ function Features() {
   );
 }
 
+// ---------------- ABOUT SECTION ----------------
 function About() {
   return (
     <section className="about-section" id="about">
@@ -192,34 +242,39 @@ function About() {
           <li>♥ Zero ads, Zero clutter</li>
         </ul>
         <div className="about-social">
-          <a href="https://github.com/your-github"><FaGithub/></a>
-          <a href="https://yourdomain.com"><FaGlobe/></a>
-          <a href="https://twitter.com/yourhandle"><FaTwitter/></a>
-          <a href="mailto:you@example.com"><FaEnvelope/></a>
+          <a href="https://github.com/yummyPancake2607"><FaGithub /></a>
+          <a href="https://www.instagram.com/lakshit_verma_10/"><FaInstagram /></a>
+          <a href="https://www.linkedin.com/in/lakshit-verma-933a56379/"><FaLinkedin /></a>
+          <a href="https://in.pinterest.com/lvcooking/"><FaPinterest /></a>
         </div>
       </motion.div>
     </section>
   );
 }
 
+// ---------------- FOOTER ----------------
 function Footer() {
   return (
     <footer className="footer glass-footer">
       <div className="footer-inner">
         <div className="footer-social-row">
-          <a href="https://github.com/your-github"><FaGithub/></a>
-          <a href="https://yourdomain.com"><FaGlobe/></a>
-          <a href="https://twitter.com/yourhandle"><FaTwitter/></a>
-          <a href="mailto:you@example.com"><FaEnvelope/></a>
+          <a href="https://github.com/yummyPancake2607"><FaGithub /></a>
+          <a href="https://www.instagram.com/lakshit_verma_10/"><FaInstagram /></a>
+          <a href="https://www.linkedin.com/in/lakshit-verma-933a56379/"><FaLinkedin /></a>
+          <a href="https://in.pinterest.com/lvcooking/"><FaPinterest /></a>
         </div>
         <div className="footer-link-row">
           <span>© {new Date().getFullYear()} Expense Tracker. All rights reserved.</span>
+        </div>
+        <div className="footer-credit">
+          <span>Made by <strong>Lakshit Verma</strong></span>
         </div>
       </div>
     </footer>
   );
 }
 
+// ---------------- APP ROOT ----------------
 function App() {
   return (
     <>
@@ -233,7 +288,7 @@ function App() {
       </SignedOut>
 
       <SignedIn>
-        <Dashboard /> {/* ✅ Now using proper Dashboard.js */}
+        <Dashboard />
       </SignedIn>
     </>
   );

@@ -38,6 +38,9 @@ function Dashboard() {
   const [categoryReport, setCategoryReport] = useState({});
   const [budgets, setBudgets] = useState([]);
   const [budgetInput, setBudgetInput] = useState("");
+  // 🌟 Sidebar toggle for small screens
+const [sidebarOpen, setSidebarOpen] = useState(false);
+const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   // --- Month & Year selection (separate) ---
   const now = new Date();
@@ -304,8 +307,15 @@ function Dashboard() {
   // --- UI start ---
   return (
     <div className="dashboard-container">
+      <button
+      className="hamburger-btn"
+      onClick={toggleSidebar}
+      aria-label="Toggle sidebar"
+    >
+      ☰
+    </button>
       {/* Sidebar */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <h2 className="logo">💸 Expense</h2>
         <nav>
           {navItems.map((item) => (
