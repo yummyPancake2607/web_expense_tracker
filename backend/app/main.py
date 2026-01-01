@@ -1,10 +1,18 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
+from datetime import datetime
+from fastapi.responses import StreamingResponse
+from datetime import date
+import csv
+import io
+
 
 from backend.app.db import SessionLocal, engine
 from backend.app import crud, schemas, models
 from backend.app.auth import get_current_user
+
 
 # =====================================================
 # FastAPI App
@@ -14,6 +22,10 @@ app = FastAPI(
     description="Backend for Expense Tracker with Clerk Auth + SQLite",
     version="1.0.0",
 )
+
+from backend.app.routers import insights
+app.include_router(insights.router)
+
 
 # =====================================================
 # CORS Middleware (MUST be here, at the top)
@@ -33,7 +45,40 @@ app.add_middleware(
 # =====================================================
 # Database Initialization
 # =====================================================
+# =====================================================
+# Database Initialization
+# =====================================================
 models.Base.metadata.create_all(bind=engine)
+
+@app.on_event("startup")
+def on_startup():
+    # Simple migration hack for hackathon: Add columns if not exist
+    # This is normally done via Alembic
+    import sqlite3
+    try:
+        # Connect to the database directly
+        conn = sqlite3.connect("expense_tracker.db")
+        cursor = conn.cursor()
+        
+        # Try adding reminder_enabled
+        try:
+            cursor.execute("ALTER TABLE users ADD COLUMN reminder_enabled BOOLEAN DEFAULT 0")
+            print("✅ Added reminder_enabled column")
+        except Exception:
+            pass # Column likely exists
+            
+        # Try adding reminder_time
+        try:
+            cursor.execute("ALTER TABLE users ADD COLUMN reminder_time VARCHAR DEFAULT '20:00'")
+            print("✅ Added reminder_time column")
+        except Exception:
+            pass # Column likely exists
+            
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"⚠️ Migration Check Warning: {e}")
+
 
 # =====================================================
 # DB Session Dependency
@@ -44,6 +89,15 @@ def get_db():
         yield db
     finally:
         db.close()
+        
+# =====================================================
+# User Preferences
+# =====================================================
+@app.put("/user/preferences", response_model=schemas.User)
+async def update_preferences(prefs: schemas.UserPreferences, current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
+    user = crud.get_or_create_user_by_clerk(db, current_user["clerk_id"], current_user["email"])
+    updated_user = crud.update_user_preferences(db, user.id, prefs)
+    return updated_user
 
 # =====================================================
 # Root
@@ -114,3 +168,87 @@ async def summary(month: str = None, category: str = None, current_user: dict = 
 async def report_by_category(month: str = None, current_user: dict = Depends(get_current_user), db: Session = Depends(get_db)):
     user = crud.get_or_create_user_by_clerk(db, current_user["clerk_id"], current_user["email"])
     return crud.report_by_category(db, user.id, month) 
+# =====================================================
+# Export CSV
+# =====================================================
+@app.get("/export/expenses/csv")
+async def export_expenses_csv(
+    from_date: str,
+    to_date: str,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user = crud.get_or_create_user_by_clerk(
+        db, current_user["clerk_id"], current_user["email"]
+    )
+
+    try:
+        start = datetime.strptime(from_date, "%Y-%m-%d").date()
+        end = datetime.strptime(to_date, "%Y-%m-%d").date()
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid date format")
+
+    if start > end:
+        raise HTTPException(status_code=400, detail="From date cannot be after To date")
+
+    csv_file = crud.export_expenses_csv(
+        db=db,
+        user_id=user.id,
+        start_date=start,
+        end_date=end
+    )
+
+    filename = f"expenses_{from_date}_to_{to_date}.csv"
+
+    return StreamingResponse(
+        csv_file,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )
+@app.get("/export/expenses")
+async def export_expenses_csv(
+    from_date: date,
+    to_date: date,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    user = crud.get_or_create_user_by_clerk(
+        db, current_user["clerk_id"], current_user["email"]
+    )
+
+    expenses = (
+        db.query(models.Expense)
+        .filter(
+            models.Expense.user_id == user.id,
+            models.Expense.date >= from_date,
+            models.Expense.date <= to_date
+        )
+        .order_by(models.Expense.date)
+        .all()
+    )
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # CSV Header
+    writer.writerow(["Date", "Category", "Amount", "Description"])
+
+    for e in expenses:
+        writer.writerow([
+            e.date,
+            e.category,
+            e.amount,
+            getattr(e, "description", ""),
+        ])
+
+    output.seek(0)
+
+    return StreamingResponse(
+        output,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": "attachment; filename=expenses.csv"
+        }
+    )

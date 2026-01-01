@@ -16,7 +16,11 @@ import {
 } from "chart.js";
 import ExpenseForm from "./components/ExpenseForm";
 import ExpenseList from "./components/ExpenseList";
-import { FaChartPie, FaFileAlt, FaWallet, FaUser, FaChartLine, FaList } from "react-icons/fa";
+import InsightCard from "./components/InsightCard";
+import AnomalyAlert from "./components/AnomalyAlert";
+import SpendingProfileCard from "./components/SpendingProfileCard";
+import WrappedContainer from "./components/MoneyWrapped/WrappedContainer";
+import { FaChartPie, FaFileAlt, FaWallet, FaUser, FaChartLine, FaList, FaPlay, FaGift } from "react-icons/fa";
 import "./dashboard.css";
 
 ChartJS.register(
@@ -43,7 +47,19 @@ function Dashboard() {
   const [trendData, setTrendData] = useState([]);
   const [monthComparison, setMonthComparison] = useState({ this_month: 0, last_month: 0, difference: 0 });
   const [currency, setCurrency] = useState("INR"); // Default currency
+  const [insights, setInsights] = useState([]);
+  const [budgetPrediction, setBudgetPrediction] = useState(null);
+  const [monthlyDiffs, setMonthlyDiffs] = useState([]);
+  const [anomalies, setAnomalies] = useState([]);
+  const [spendingProfile, setSpendingProfile] = useState(null);
   const [editingBudgetMonth, setEditingBudgetMonth] = useState(null);
+  const [showWrapped, setShowWrapped] = useState(false);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [exportLoading, setExportLoading] = useState(false);
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderTime, setReminderTime] = useState("20:00");
+
 
   // 🌟 Sidebar toggle for small screens
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -104,12 +120,81 @@ function Dashboard() {
     setCategoryReport(await res.json());
   }, [getToken, selectedMonth]);
 
+  const handleExportCSV = async () => {
+  if (!fromDate || !toDate) {
+    alert("Please select both From and To dates");
+    return;
+  }
+
+  try {
+    setExportLoading(true);
+    const token = await getToken();
+
+    const res = await fetch(
+      `${API_URL}/export/expenses?from_date=${fromDate}&to_date=${toDate}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      }
+    );
+
+    if (!res.ok) {
+      throw new Error("Failed to export CSV");
+    }
+
+    const blob = await res.blob();
+
+    // Create download
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `expenses_${fromDate}_to_${toDate}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+  } catch (err) {
+    console.error(err);
+    alert("Error exporting CSV");
+  } finally {
+    setExportLoading(false);
+  }
+};
+
+
+
   const fetchBudgets = useCallback(async () => {
     const token = await getToken();
     const res = await fetch(`${API_URL}/budgets_all/`, {
-      headers: { Authorization: "Bearer " + token },
+        headers: { Authorization: "Bearer " + token },
     });
     if (res.ok) setBudgets(await res.json());
+  }, [getToken]);
+
+  const fetchInsights = useCallback(async () => {
+    const token = await getToken();
+    try {
+      // Parallel fetch
+      const [resInsights, resPred, resDiff, resAnom, resProf] = await Promise.all([
+        fetch(`${API_URL}/insights`, { headers: { Authorization: "Bearer " + token } }),
+        fetch(`${API_URL}/budget/risk`, { headers: { Authorization: "Bearer " + token } }),
+        fetch(`${API_URL}/reports/monthly-diff`, { headers: { Authorization: "Bearer " + token } }),
+        fetch(`${API_URL}/anomalies`, { headers: { Authorization: "Bearer " + token } }),
+        fetch(`${API_URL}/spending-profile`, { headers: { Authorization: "Bearer " + token } })
+      ]);
+      
+      if (resInsights.ok) setInsights(await resInsights.json());
+      if (resPred.ok) setBudgetPrediction(await resPred.json());
+      if (resDiff.ok) setMonthlyDiffs(await resDiff.json());
+      if (resAnom.ok) setAnomalies(await resAnom.json());
+      if (resProf.ok) setSpendingProfile(await resProf.json());
+      
+    } catch (e) {
+      console.error("Failed to fetch insights", e);
+    }
   }, [getToken]);
 
   useEffect(() => {
@@ -118,7 +203,8 @@ function Dashboard() {
     fetchSummary();
     fetchCategoryReport();
     fetchBudgets();
-  }, [isSignedIn, fetchExpenses, fetchSummary, fetchCategoryReport, fetchBudgets]);
+    fetchInsights();
+  }, [isSignedIn, fetchExpenses, fetchSummary, fetchCategoryReport, fetchBudgets, fetchInsights]);
 
   // re-fetch data when month/year changes
   useEffect(() => {
@@ -147,6 +233,7 @@ function Dashboard() {
     fetchExpenses();
     fetchSummary();
     fetchCategoryReport();
+    fetchInsights();
   }
 
   async function handleDelete(id) {
@@ -161,37 +248,47 @@ function Dashboard() {
   }
 
   // --- Budget Handlers ---
-  async function handleSetBudget() {
-    const token = await getToken();
-    const payload = { month: `${selectedYear}-${selectedMonthOnly}`, amount: parseFloat(budgetInput) };
+const handleSetBudget = async () => {
+  // Format month as YYYY-MM
+  const monthString = `${selectedYear}-${selectedMonthOnly.toString().padStart(2, '0')}`;
 
-    if (!payload.amount || isNaN(payload.amount)) return;
+  const payload = {
+    month: monthString,
+    amount: Number(budgetInput)
+  };
 
-    if (editingBudgetMonth) {
-      await fetch(`${API_URL}/budgets/${editingBudgetMonth}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-        body: JSON.stringify(payload),
-      });
-      setEditingBudgetMonth(null);
-    } else {
-      await fetch(`${API_URL}/budgets/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-        body: JSON.stringify(payload),
-      });
-    }
-    fetchBudgets();
+  // ✅ Get token here
+  const token = await getToken();
+
+  const res = await fetch(`${API_URL}/budgets/`, {
+    method: "POST", // create/update
+    headers: { 
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (res.ok) {
+    setEditingBudgetMonth(null);
     setBudgetInput("");
+    fetchBudgets(); // refresh budget list
+  } else {
+    console.error("Failed to save budget", await res.text());
   }
+};
 
-  async function handleEditBudget(b) {
-    const [yr, mon] = b.month.split("-");
-    setSelectedYear(yr);
-    setSelectedMonthOnly(mon.padStart(2, "0"));
-    setBudgetInput(String(b.amount));
-    setEditingBudgetMonth(b.month);
-  }
+
+
+const handleEditBudget = (b) => {
+  setEditingBudgetMonth(b.month);      // remember which month is being edited
+  setBudgetInput(b.amount);            // fill input with current amount
+
+  const [year, month] = b.month.split("-");
+  setSelectedYear(year);
+  setSelectedMonthOnly(month);         // already 2-digit
+};
+
 
   async function handleDeleteBudget(b) {
     const token = await getToken();
@@ -202,6 +299,68 @@ function Dashboard() {
     if (editingBudgetMonth === b.month) setEditingBudgetMonth(null);
     fetchBudgets();
   }
+
+  // --- Reminder Handler ---
+  const handleSaveReminder = async () => {
+      // 1. Ask for permission first
+      if (reminderEnabled && Notification.permission !== "granted") {
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+            alert("We need permission to show notifications!");
+            return;
+        }
+      }
+
+      const token = await getToken();
+      try {
+          const res = await fetch(`${API_URL}/user/preferences`, {
+              method: "PUT",
+              headers: { 
+                  "Content-Type": "application/json",
+                  "Authorization": "Bearer " + token 
+              },
+              body: JSON.stringify({ 
+                  reminder_enabled: reminderEnabled,
+                  reminder_time: reminderTime
+              }),
+          });
+          if (res.ok) {
+              alert("Reminder preferences saved! 🔔");
+          } else {
+              alert("Failed to save preferences.");
+          }
+      } catch (e) {
+          console.error("Error saving reminder prefs", e);
+      }
+  };
+
+  // 🔔 Browser Notification Logic
+  useEffect(() => {
+    if (!reminderEnabled || !isSignedIn) return;
+
+    const interval = setInterval(() => {
+        const now = new Date();
+        const currentHours = String(now.getHours()).padStart(2, '0');
+        const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+        const currentTime = `${currentHours}:${currentMinutes}`;
+
+        if (currentTime === reminderTime) {
+            // Check if we already notified this minute to avoid spam (simple lock)
+            const lastRun = localStorage.getItem("last_reminder_run");
+            if (lastRun !== currentTime) {
+                 if (Notification.permission === "granted") {
+                     new Notification("📝 Time to log your expenses!", {
+                         body: "Quick check-in: Did you spend anything today?",
+                         icon: "/logo.svg" // optional, assumes public/logo.svg exists
+                     });
+                 }
+                 localStorage.setItem("last_reminder_run", currentTime);
+            }
+        }
+    }, 10000); // Check every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [reminderEnabled, reminderTime, isSignedIn]);
 
   // --- Chart Data ---
   const PALETTE = [
@@ -281,7 +440,7 @@ function Dashboard() {
 
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
-        <h2 className="logo">💸 Expense</h2>
+        <h2 className="logo">💸 Coinzo</h2>
         <nav>
           {navItems.map((item) => (
             <button key={item.name} className={`sidebar-link ${view === item.name ? "active" : ""}`} onClick={() => setView(item.name)}>
@@ -311,17 +470,89 @@ function Dashboard() {
               </select>
             </div>
 
-            <div className="greeting-card">
-              <h2>Welcome Back {user?.firstName ? `${user.firstName} 👋` : "👋"}</h2>
-              <p>
-                {summary?.percent_used < 50
-                  ? "Great job staying under budget! 🚀"
-                  : summary?.percent_used < 90
-                    ? "You're close to your budget, watch your expenses 💡"
-                    : "⚠️ Warning: Budget limit is about to be exceeded!"}
-              </p>
+            <div className="greeting-card" style={{ position: 'relative' }}>
+              <button 
+                onClick={() => setShowWrapped(true)}
+                className="play-wrapped-btn"
+              >
+                  <FaPlay size={12} /> Play Money Wrapped
+              </button>
+
+              {insights.length > 0 ? (
+                <div>
+                  <h2 style={{ color: '#d9534f' }}>⚠️ Critical Insight</h2>
+                  <p style={{ fontSize: '1.2rem', fontWeight: '500' }}>{insights[0].text}</p>
+                </div>
+              ) : (
+                <div>
+                   <h2>Welcome Back {user?.firstName ? `${user.firstName}` : ""}</h2>
+                   <p>No critical insights yet. Add more expenses to generate analysis.</p>
+                </div>
+              )}
             </div>
 
+            
+            
+            {showWrapped && <WrappedContainer onClose={() => setShowWrapped(false)} />}
+            
+            {/* NEW: Behavior First (Profile + Insights) */}
+            {spendingProfile && <SpendingProfileCard profile={spendingProfile} />}
+            
+            {/* Insights Section (Moved to Top) */}
+             <div className="list-card" style={{ marginBottom: '20px' }}>
+              <h3>💡 Spending Behavior & Insights</h3>
+              {budgetPrediction && budgetPrediction.projected_overrun && (
+                <div style={{ backgroundColor: '#f8d7da', color: '#721c24', padding: '10px', borderRadius: '5px', marginBottom: '10px' }}>
+                  <strong>⚠️ Budget Burn Warning:</strong> At your current spending rate, your budget will be exceeded in {budgetPrediction.days_to_exhaustion} days.
+                </div>
+              )}
+              {anomalies.map((anom) => (
+                <AnomalyAlert key={anom.id} anomaly={anom} />
+              ))}
+              {insights.length === 0 ? <p>No major insights yet. Keep tracking!</p> : (
+                  insights.map((insight, idx) => (
+                    <InsightCard key={idx} insight={insight} />
+                  ))
+              )}
+            </div>
+            <section className="export-section">
+  <div className="export-header">
+    <h3>📤 Export Expenses</h3>
+    <p>Download all your expense data for a selected date range</p>
+  </div>
+
+  <div className="export-body">
+    <div className="export-field">
+      <label>From</label>
+      <input
+        type="date"
+        value={fromDate}
+        onChange={(e) => setFromDate(e.target.value)}
+      />
+    </div>
+
+    <div className="export-field">
+      <label>To</label>
+      <input
+        type="date"
+        value={toDate}
+        onChange={(e) => setToDate(e.target.value)}
+      />
+    </div>
+
+    <button
+      onClick={handleExportCSV}
+      disabled={exportLoading}
+      className="export-btn"
+    >
+      {exportLoading ? "Preparing CSV..." : "Download CSV"}
+    </button>
+  </div>
+</section>
+
+            
+
+            {/* Stats Grid (Moved Below) */}
             <div className="stats-grid">
               <div className="stat-card pink"><h3>Total Spent</h3><p>{summary ? formatCurrency(summary.total, currency) : "--"}</p></div>
               <div className="stat-card blue"><h3>Budget Used</h3><p>{summary ? `${summary.percent_used}%` : "--"}</p></div>
@@ -336,6 +567,23 @@ function Dashboard() {
             <div className="list-card"><h3>Recent Expenses</h3>
               {loading ? <p>Loading...</p> : <ExpenseList expenses={expenses} onEdit={setEditingExpense} onDelete={handleDelete} currency={currency} />}
             </div>
+            
+            {/* Monthly Changes */}
+            {monthlyDiffs.length > 0 && (
+                <div className="list-card" style={{ marginTop: '20px' }}>
+                  <h4>Month-over-Month Changes</h4>
+                  <ul style={{ listStyle: 'none', padding: 0 }}>
+                    {monthlyDiffs.slice(0, 3).map(diff => (
+                      <li key={diff.category} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid #eee' }}>
+                         <span>{diff.category}</span>
+                         <span style={{ color: diff.diff > 0 ? 'red' : 'green' }}>
+                           {diff.diff > 0 ? '↑' : '↓'} {formatCurrency(Math.abs(diff.diff), currency)}
+                         </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
           </>
         )}
 
@@ -392,6 +640,37 @@ function Dashboard() {
               <div className="chart-card"><h3>Category Breakdown</h3><Bar data={barData} /></div>
               <div className="chart-card"><h3>Daily Spending Trend</h3><Line data={lineData} /></div>
               <div className="chart-card"><h3>This Month vs Last Month</h3><Bar data={monthCompareData} /></div>
+            </div>
+
+            <div className="list-card" style={{ marginTop: "20px" }}>
+              <h3>📅 Monthly Comparison Table</h3>
+              {monthlyDiffs.length === 0 ? (
+                <p>No data available for comparison.</p>
+              ) : (
+                <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "10px" }}>
+                  <thead>
+                    <tr style={{ borderBottom: "2px solid #eee", textAlign: "left" }}>
+                      <th style={{ padding: "10px" }}>Category</th>
+                      <th style={{ padding: "10px" }}>This Month</th>
+                      <th style={{ padding: "10px" }}>Last Month</th>
+                      <th style={{ padding: "10px" }}>Difference</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {monthlyDiffs.map((row) => (
+                      <tr key={row.category} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                        <td style={{ padding: "10px" }}>{row.category}</td>
+                        <td style={{ padding: "10px" }}>{formatCurrency(row.current, currency)}</td>
+                        <td style={{ padding: "10px" }}>{formatCurrency(row.previous, currency)}</td>
+                        <td style={{ padding: "10px", color: row.diff > 0 ? "red" : "green", fontWeight: "bold" }}>
+                          {row.diff > 0 ? "↑" : row.diff < 0 ? "↓" : "-"}{" "}
+                          {formatCurrency(Math.abs(row.diff), currency)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         )}
@@ -487,6 +766,46 @@ function Dashboard() {
                     <span className="currency-badge">{currency}</span>
                   </p>
                 </div>
+                
+                {/* Daily Reminder Setting */}
+                <div className="reminder-box" style={{ marginTop: '20px', padding: '15px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px' }}>
+                    <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>⏰ Daily Reminder</h3>
+                    <p style={{ fontSize: '0.9rem', opacity: 0.8, marginBottom: '15px' }}>Get a browser notification to log your expenses.</p>
+                    
+                    <div style={{ display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                            <input 
+                                type="checkbox" 
+                                checked={reminderEnabled} 
+                                onChange={(e) => setReminderEnabled(e.target.checked)}
+                                style={{ transform: 'scale(1.2)' }}
+                            />
+                            <span>Enable Reminders</span>
+                        </label>
+                        
+                        {reminderEnabled && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span>At:</span>
+                                <input 
+                                    type="time" 
+                                    value={reminderTime} 
+                                    onChange={(e) => setReminderTime(e.target.value)}
+                                    style={{ padding: '5px', borderRadius: '5px', border: '1px solid #444', background: '#222', color: '#fff' }}
+                                />
+                            </div>
+                        )}
+                        
+                        <button 
+                            onClick={handleSaveReminder}
+                            style={{ 
+                                padding: '6px 16px', borderRadius: '6px', border: 'none', 
+                                background: 'var(--primary)', color: 'white', cursor: 'pointer', fontWeight: 'bold' 
+                            }}
+                        >
+                            Save
+                        </button>
+                    </div>
+                </div>
 
                 {/* Actions */}
                 <div className="profile-actions">
@@ -494,10 +813,10 @@ function Dashboard() {
                     className="signout-btn"
                     onClick={() => signOut({ redirectUrl: "/" })}
                   >
-                    🚪 Sign Out
+                     Sign Out
                   </button>
-                  <div style={{ marginLeft: "10px" }}>
-                    <UserButton afterSignOutUrl="/" />
+                  <div style={{ marginLeft: "10px", marginTop: "20px" }}>
+                    <UserButton afterSignOutUrl="/" /> Manage Account
                   </div>
                 </div>
               </SignedIn>

@@ -1,0 +1,7 @@
+# Secrets
+*.json
+.env
+__pycache__/
+venv/
+*.db
+*.log

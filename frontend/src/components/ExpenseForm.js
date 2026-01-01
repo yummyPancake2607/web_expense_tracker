@@ -7,6 +7,7 @@ function ExpenseForm({ onSubmit, editingExpense, onCancel }) {
   const [category, setCategory] = useState("Food");
   const [customCategory, setCustomCategory] = useState("");
 
+
   // Predefined categories with option for Custom
   const predefinedCategories = [
     "Food",
@@ -35,6 +36,9 @@ function ExpenseForm({ onSubmit, editingExpense, onCancel }) {
     }
   }, [editingExpense]);
 
+  // Handle receipt upload
+
+
   // Handle form submit
   function handleSubmit(e) {
     e.preventDefault();
@@ -56,6 +60,9 @@ function ExpenseForm({ onSubmit, editingExpense, onCancel }) {
 
   return (
     <form onSubmit={handleSubmit} className="expense-form">
+      {/* Receipt Upload */}
+
+
       {/* Date */}
       <input
         type="date"

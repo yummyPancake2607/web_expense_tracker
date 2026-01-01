@@ -29,7 +29,14 @@ function ExpenseList({ expenses, onEdit, onDelete, currency }) {
             <td data-label="Date">{exp.date}</td>
             <td data-label="Description">{exp.description}</td>
             <td data-label="Category">{exp.category}</td>
-            <td data-label="Amount">{formatCurrency(exp.amount, currency)}</td>
+            <td data-label="Amount">
+              {formatCurrency(exp.amount, currency)}
+              {exp.is_anomaly && (
+                <span style={{ marginLeft: "8px", color: "orange", cursor: "help" }} title="Unusual spending detected">
+                  ⚠
+                </span>
+              )}
+            </td>
             <td data-label="Actions">
               <button
                 className="action-btn edit-btn"

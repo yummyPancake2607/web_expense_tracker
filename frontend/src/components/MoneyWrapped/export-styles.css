@@ -1,0 +1,231 @@
+/* export-styles.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+
+/* --- INSTAGRAM STORY CARD (1080x1920) --- */
+.insta-story-container {
+    width: 1080px;
+    height: 1920px;
+    position: absolute;
+    top: -9999px; /* Hidden off-screen */
+    left: -9999px;
+    font-family: 'Inter', sans-serif;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 140px 100px; /* More breathing room */
+    box-sizing: border-box;
+    text-align: center;
+    background: #0f172a; 
+    overflow: hidden;
+    z-index: -1;
+}
+
+/* Gradients matching the app but enhanced for static image */
+.insta-story-container.gradient-blue { background: linear-gradient(180deg, #60a5fa 0%, #2563eb 100%); }
+.insta-story-container.gradient-purple { background: linear-gradient(180deg, #c084fc 0%, #7c3aed 100%); }
+.insta-story-container.gradient-red { background: linear-gradient(180deg, #fb923c 0%, #dc2626 100%); }
+.insta-story-container.gradient-green { background: linear-gradient(180deg, #4ade80 0%, #16a34a 100%); }
+.insta-story-container.gradient-dark { background: linear-gradient(180deg, #94a3b8 0%, #1e293b 100%); }
+
+/* --- ZONES --- */
+.story-header {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 60px;
+}
+
+.story-hero {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.story-footer {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 40px;
+}
+
+/* --- COMPONENTS --- */
+.insta-emoji {
+    font-size: 220px;
+    margin-bottom: 30px;
+    filter: drop-shadow(0 10px 30px rgba(0,0,0,0.25));
+}
+
+.credibility-badge {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 16px 40px;
+    border-radius: 50px;
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-top: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.insta-title {
+    font-size: 100px; /* Slightly smaller for balance */
+    font-weight: 800;
+    line-height: 1.05;
+    margin: 0 0 40px 0;
+    text-shadow: 0 4px 30px rgba(0,0,0,0.2);
+    letter-spacing: -2px;
+}
+
+.insta-subtitle {
+    font-size: 56px;
+    font-weight: 500;
+    opacity: 0.95;
+    line-height: 1.3;
+    white-space: pre-wrap; /* Allow newlines */
+}
+
+/* Footer redesign */
+.footer-line {
+    width: 60%;
+    height: 4px;
+    background: rgba(255,255,255,0.4);
+    margin-bottom: 40px;
+    border-radius: 2px;
+}
+
+.footer-brand {
+    font-size: 36px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    opacity: 0.9;
+}
+
+.footer-tagline {
+    font-size: 28px;
+    font-weight: 500;
+    margin-top: 15px;
+    opacity: 0.7;
+    font-style: italic;
+}
+
+/* --- PDF REPORT (A4: 595x842pt approx, simplified to pixel ratio) --- */
+/* We'll generally use standard pixel width for html2canvas to capture cleanly */
+.pdf-container {
+    width: 794px; /* A4 width at 96 DPI approx, or simpler scaled */
+    min-height: 1123px;
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+    background: white;
+    font-family: 'Inter', sans-serif;
+    color: #1e293b;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.pdf-page {
+    width: 100%;
+    height: 1123px; /* A4 height */
+    padding: 60px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid #eee; /* Debug separator */
+    background: white;
+}
+
+.pdf-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 20px;
+    margin-bottom: 40px;
+}
+
+.pdf-logo {
+    font-size: 24px;
+    font-weight: 800;
+    color: #2563eb;
+}
+
+.pdf-date {
+    font-size: 18px;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.pdf-hero {
+    text-align: center;
+    padding: 40px 0;
+    background: #f8fafc;
+    border-radius: 20px;
+    margin-bottom: 40px;
+}
+
+.pdf-hero h1 {
+    font-size: 36px;
+    font-weight: 900;
+    margin: 0;
+    color: #0f172a;
+}
+
+.pdf-big-number {
+    font-size: 64px;
+    font-weight: 900;
+    color: #2563eb;
+    margin: 20px 0 10px 0;
+}
+
+.pdf-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.pdf-section-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #334155;
+}
+
+.pdf-insight-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 15px;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.pdf-icon {
+    font-size: 20px;
+    background: #eff6ff;
+    padding: 8px;
+    border-radius: 50%;
+    color: #2563eb;
+}
+
+.pdf-footer {
+    margin-top: auto;
+    text-align: center;
+    font-size: 12px;
+    color: #94a3b8;
+    padding-top: 20px;
+    border-top: 1px solid #f1f5f9;
+}
